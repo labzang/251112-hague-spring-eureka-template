@@ -1,0 +1,115 @@
+services:
+
+  db:
+    image: postgres:15
+    container_name: labzangdb
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=labzang
+      - POSTGRES_PASSWORD=labzangpw
+      - POSTGRES_DB=labzangdb
+    networks:
+      - spring-network
+
+  eureka:
+    build:
+      context: .
+      dockerfile: ./server/eureka/Dockerfile
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - HOSTNAME=eureka-server
+    networks:
+      - spring-network
+
+  config:
+    build:
+      context: .
+      dockerfile: ./server/config/Dockerfile
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker,native
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka:8761/eureka/
+      - HOSTNAME=config-server
+    depends_on:
+      - eureka
+    networks:
+      - spring-network
+
+  discovery:
+    build:
+      context: .
+      dockerfile: ./server/discovery/Dockerfile
+    container_name: discovery-client
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka:8761/eureka/
+      - HOSTNAME=discovery-client
+      - SERVER_PORT=8080
+      - CONFIG_SERVER_ENABLED=false
+    depends_on:
+      - eureka
+    networks:
+      - spring-network
+
+  common:
+    build:
+      context: .
+      dockerfile: ./service/common/Dockerfile
+    container_name: common-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka:8761/eureka/
+      - SERVER_PORT=8081
+      - HOSTNAME=common-service
+    depends_on:
+      - eureka
+    networks:
+      - spring-network
+
+  user:
+    build:
+      context: .
+      dockerfile: ./service/user/Dockerfile
+    container_name: user-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka:8761/eureka/
+      - SERVER_PORT=8082
+      - HOSTNAME=user-service
+    depends_on:
+      - eureka
+    networks:
+      - spring-network
+
+  soccer:
+    build:
+      context: .
+      dockerfile: ./service/soccer/Dockerfile
+    container_name: soccer-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka:8761/eureka/
+      - SERVER_PORT=8083
+      - HOSTNAME=soccer-service
+    depends_on:
+      - eureka
+    networks:
+      - spring-network
+
+networks:
+  spring-network:
+    driver: bridge
