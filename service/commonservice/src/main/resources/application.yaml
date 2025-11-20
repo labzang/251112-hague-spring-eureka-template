@@ -1,6 +1,6 @@
 spring:
   application:
-    name: user
+    name: commonservice
 
 eureka:
   client:
@@ -10,4 +10,4 @@ eureka:
     fetch-registry: true
   instance:
     prefer-ip-address: false
-    hostname: ${HOSTNAME:userservice}
+    hostname: ${HOSTNAME:commonservice}
